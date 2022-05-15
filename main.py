@@ -15,7 +15,7 @@ class TitleType(Enum):
     TOP_15 =    1
     TOP_20 =    2
     EXPLAINED = 3
-    WHY =       4
+    QUESTION =  4
     GENERAL =   5
 
 output_example = """
@@ -48,7 +48,7 @@ def title_to_prompt(title:str, title_type:TitleType=TitleType.GENERAL):
         return f"Summarize the following 'top 20' article '{title}' to a list.\nInclude a short description for each item."
     elif title_type == TitleType.EXPLAINED:
         return f"Summarize the following article titled, '{title}'."
-    elif title_type == TitleType.WHY:
+    elif title_type == TitleType.QUESTION:
         return f"Summarize the following article so it answers the question, '{title}'."
     elif title_type == TitleType.GENERAL:
         return f"Summarize the following article, titled '{title}'."
@@ -75,9 +75,16 @@ def preproc_by_type(text:str, title_type:TitleType):
     # else:
     return text
 
+def example_by_type(title_type:TitleType):
+    if title_type == TitleType.TOP_10:
+        return f"\nExample Output:\n{output_example}\n"
+    else:
+        return ""
+
 def gpt3_summarize(title, title_type, text):
     prompt = title_to_prompt(title, title_type)
-    ask_text = f"{prompt}\n\nExample Output:\n{output_example}\n\nInput:\n{text}\n\nOutput:"
+    example = example_by_type(title_type)
+    ask_text = f"{prompt}\n{example}\nInput:\n{text}\n\nOutput:"
 
     print(f"Querying OpenAI for summary of '{title}'...")
     result = openai.Completion.create(
@@ -164,8 +171,8 @@ def title_type_str_to_enum(title_type_str:str):
         return TitleType.TOP_20
     elif title_type_str == "explained":
         return TitleType.EXPLAINED
-    elif title_type_str == "why":
-        return TitleType.WHY
+    elif title_type_str == "question":
+        return TitleType.QUESTION
     elif title_type_str == "general":
         return TitleType.GENERAL
     else:
@@ -175,7 +182,11 @@ def main():
     parser = argparse.ArgumentParser(description='Summarize a YouTube video with GPT-3')
     parser.add_argument('--video_id', type=str, required=True,
                         help='Video id of YouTube video')
-    parser.add_argument('--title_type', type=str, default="general", help='Title type of the video. Choose from "top10", "top15", "top20", "explained", "why", "general"')
+    parser.add_argument('--title_type', type=str, default="general", help='Title type of the video. Choose from "top10", "top15", "top20", "explained", "question", "general"')
+    args = parser.parse_args()
+
+    title_type = title_type_str_to_enum(args.title_type)
+    summarize(args.video_id, title_type)
 
     args = parser.parse_args()
     v_id = args.video_id
