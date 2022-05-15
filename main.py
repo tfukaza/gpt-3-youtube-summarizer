@@ -47,11 +47,11 @@ def title_to_prompt(title:str, title_type:TitleType=TitleType.GENERAL):
     elif title_type == TitleType.TOP_20:
         return f"Summarize the following transcript of a 'top 20' video titled '{title}' to a list.\nInclude a short description for each item."
     elif title_type == TitleType.EXPLAINED:
-        return f"Summarize the following transcript of a video titled, '{title}'."
+        return f"Summarize the following transcript of a video titled '{title}' in less than 200 words."
     elif title_type == TitleType.QUESTION:
-        return f"Summarize the following transcript of a video so it answers the question, '{title}'."
+        return f"Summarize the following transcript of a video so it answers the question '{title}' in less than 200 words."
     elif title_type == TitleType.GENERAL:
-        return f"Summarize the following transcript of a video, titled '{title}'."
+        return f"Summarize the following transcript of a video, titled '{title}', to fewer than 200 words."
 
 # Find all tokens of form "number [number word]" or "[int]." in the string
 # and add a colon and a newline to the end of each token
@@ -89,7 +89,7 @@ def gpt3_summarize(title, title_type, text):
     print(f"Querying OpenAI for summary of '{title}'...")
     result = openai.Completion.create(
         engine="text-davinci-002",
-        temperature=0, max_tokens=512,   
+        temperature=0, max_tokens=256,   
         prompt=ask_text
     )
     print(f"Done!")
