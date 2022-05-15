@@ -185,10 +185,6 @@ def main():
     parser.add_argument('--title_type', type=str, default="general", help='Title type of the video. Choose from "top10", "top15", "top20", "explained", "question", "general"')
     args = parser.parse_args()
 
-    title_type = title_type_str_to_enum(args.title_type)
-    summarize(args.video_id, title_type)
-
-    args = parser.parse_args()
     v_id = args.video_id
     t_type = title_type_str_to_enum(args.title_type)
     summarize(v_id, t_type)
