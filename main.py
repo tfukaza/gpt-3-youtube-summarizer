@@ -186,6 +186,8 @@ def main():
     args = parser.parse_args()
 
     v_id = args.video_id
+    if v_id[0] == "@":
+        v_id = v_id[1:]
     t_type = title_type_str_to_enum(args.title_type)
     summarize(v_id, t_type)
 

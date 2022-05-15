@@ -49,4 +49,9 @@ Run from cli
  python main.py --video_id <id of video> --title_type top10
 ```
 
+If the id of the video starts with a `-` character, the CLI may mistake it as a keyword. In such case, prepend the id with an `@`. For example:
+```bash
+ python main.py --video_id <id of video> --title_type top10
+```
+
 
