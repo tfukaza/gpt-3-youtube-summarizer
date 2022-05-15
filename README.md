@@ -51,7 +51,7 @@ Run from cli
 
 If the id of the video starts with a `-` character, the CLI may mistake it as a keyword. In such case, prepend the id with an `@`. For example:
 ```bash
- python main.py --video_id <id of video> --title_type top10
+ python main.py --video_id @-1234567 --title_type top10
 ```
 
 
