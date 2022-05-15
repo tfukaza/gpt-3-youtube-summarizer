@@ -43,15 +43,15 @@ def title_to_prompt(title:str, title_type:TitleType=TitleType.GENERAL):
     if title_type == TitleType.TOP_10:
         return f"Summarize the following transcript of a video titled '{title}' into to a numbered list.\nInclude a short description for each item."
     elif title_type == TitleType.TOP_15:
-        return f"Summarize the following 'top 15' article '{title}' to a list.\nInclude a short description for each item."
+        return f"Summarize the following transcript of a 'top 15' video titled '{title}' to a list.\nInclude a short description for each item."
     elif title_type == TitleType.TOP_20:
-        return f"Summarize the following 'top 20' article '{title}' to a list.\nInclude a short description for each item."
+        return f"Summarize the following transcript of a 'top 20' video titled '{title}' to a list.\nInclude a short description for each item."
     elif title_type == TitleType.EXPLAINED:
-        return f"Summarize the following article titled, '{title}'."
+        return f"Summarize the following transcript of a video titled, '{title}'."
     elif title_type == TitleType.QUESTION:
-        return f"Summarize the following article so it answers the question, '{title}'."
+        return f"Summarize the following transcript of a video so it answers the question, '{title}'."
     elif title_type == TitleType.GENERAL:
-        return f"Summarize the following article, titled '{title}'."
+        return f"Summarize the following transcript of a video, titled '{title}'."
 
 # Find all tokens of form "number [number word]" or "[int]." in the string
 # and add a colon and a newline to the end of each token
@@ -195,3 +195,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
