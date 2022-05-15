@@ -47,9 +47,9 @@ def title_to_prompt(title:str, title_type:TitleType=TitleType.GENERAL):
     elif title_type == TitleType.TOP_20:
         return f"Summarize the following transcript of a 'top 20' video titled '{title}' to a list.\nInclude a short description for each item."
     elif title_type == TitleType.EXPLAINED:
-        return f"Summarize the following transcript of a video titled '{title}' in less than 200 words."
+        return f"Summarize the following transcript of a video titled '{title}' in fewer than 200 words."
     elif title_type == TitleType.QUESTION:
-        return f"Summarize the following transcript of a video so it answers the question '{title}' in less than 200 words."
+        return f"Summarize the following transcript of a video so it answers the question '{title}' in fewer than 200 words."
     elif title_type == TitleType.GENERAL:
         return f"Summarize the following transcript of a video, titled '{title}', to fewer than 200 words."
 
