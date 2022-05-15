@@ -1,0 +1,4 @@
+youtube_transcript_api
+bs4
+openai
+toml
