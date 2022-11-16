@@ -8,6 +8,7 @@ import requests
 from enum import Enum
 import argparse
 import json
+import os
 
 # Enum for different types of articles
 class TitleType(Enum):
@@ -47,7 +48,7 @@ def title_to_prompt(title:str, title_type:TitleType=TitleType.GENERAL):
     elif title_type == TitleType.TOP_20:
         return f"Summarize the following transcript of a 'top 20' video titled '{title}' to a list.\nInclude a short description for each item."
     elif title_type == TitleType.EXPLAINED:
-        return f"Summarize the following transcript of a video titled '{title}' in fewer than 200 words."
+        return f"Summarize the following transcript of a video titled '{title}'. Keep it fewer than 200 words."
     elif title_type == TitleType.QUESTION:
         return f"Summarize the following transcript of a video so it answers the question '{title}' in fewer than 200 words."
     elif title_type == TitleType.GENERAL:
@@ -89,7 +90,33 @@ def gpt3_summarize(title, title_type, text):
     print(f"Querying OpenAI for summary of '{title}'...")
     result = openai.Completion.create(
         engine="text-davinci-002",
-        temperature=0, max_tokens=256,   
+        temperature=0, max_tokens=512,   
+        prompt=ask_text
+    )
+    print(f"Done!")
+    return ask_text, result.choices[0]['text']
+
+def gpt3_summarize_cont(title, title_type, text, summary):
+    prompt = title_to_prompt(title, title_type)
+    example = example_by_type(title_type)
+    ask_text = f"The following is a transcript of the video '{title}':\n{text}\n\nNow, base don the transcript, continue writing summary below:\n{summary}"
+
+    print(f"Querying OpenAI for summary of '{title}'...")
+    result = openai.Completion.create(
+        engine="text-davinci-002",
+        temperature=0, max_tokens=512,   
+        prompt=ask_text
+    )
+    print(f"Done!")
+    return ask_text, result.choices[0]['text']
+
+def gpt3_summarize_distill(title, title_type, summary):
+    ask_text = f"Summarize the following transcript of a video titled '{title}'. Keep it short as possible.\n\nTranscript:\n{summary}\n\nOutput:"
+
+    print(f"Querying OpenAI for summary of '{title}'...")
+    result = openai.Completion.create(
+        engine="text-davinci-002",
+        temperature=0, max_tokens=512,
         prompt=ask_text
     )
     print(f"Done!")
@@ -105,10 +132,6 @@ def summarize(video_id:str, title_type:TitleType=TitleType.GENERAL):
     orig_text = re.sub(r"\s+", " ", text)    # Remove double spaces
 
     text = preproc_by_type(orig_text, title_type)
-
-    tokens = text.split(" ")
-    if len(tokens) > 4000:
-        raise Exception(f"Text is too long, it has {len(tokens)} tokens")
 
     # Get the title of the YouTube video 
     video_url = f"https://www.youtube.com/watch?v={video_id}"
@@ -129,9 +152,37 @@ def summarize(video_id:str, title_type:TitleType=TitleType.GENERAL):
     print(f"Text:        {text[:100]}{dots}")
 
     load_secret()
-    prompt, summary = gpt3_summarize(title, title_type, text)
 
-    print(f"Summary: \n{summary}")
+    tokens = text.split(" ")
+    MAX_TOKENS = 2500
+    is_split = len(tokens) > MAX_TOKENS
+    if is_split:
+        print("Input is very long, splitting into chunks...")
+        chunks = [tokens[i:i+MAX_TOKENS] for i in range(0, len(tokens), MAX_TOKENS)]
+        chunks = [" ".join(c) for c in chunks]
+        prompts = []
+        summaries = []
+        for chunk in chunks:
+            if len(summaries) == 0:
+                prompt, summary = gpt3_summarize(title, title_type, chunk)
+            else:
+                summary_cat = " ".join(summaries)
+                prompt, summary = gpt3_summarize_cont(title, title_type, chunk, summary_cat)
+            prompts.append(prompt)
+            summaries.append(summary)
+        summary = " ".join(summaries)
+        print(f"Summary: \n{summary}")
+        summary_tokens = summary.split(" ")
+        if len(summary_tokens) > 400:
+            print("Summary is too long, distilling...")
+            prompt, summary = gpt3_summarize_distill(title, title_type, summary)
+            print(f"Distilled summary: \n{summary}")
+            prompts.append(prompt)
+            
+    else:
+        prompt, summary = gpt3_summarize(title, title_type, text)
+        prompts = [prompt]
+        print(f"Summary: \n{summary}")
 
     # Save the result into a json file
     result = {
@@ -141,11 +192,14 @@ def summarize(video_id:str, title_type:TitleType=TitleType.GENERAL):
         "title_type": title_type.name,
         "orig_text": orig_text,
         "proc_text": text,
-        "prompt": prompt,
+        "prompts": prompts,
         "summary": summary
     }
     result_path = "./results"
-    with open(f"{result_path}/{video_id}.json", "w") as f:
+    if not os.path.exists(result_path):
+        os.mkdir(result_path)
+    result_file = os.path.join(result_path, f"{video_id}.json")
+    with open(result_file, "w") as f:
         json.dump(result, f, indent=4)
 
     return result
